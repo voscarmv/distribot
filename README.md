@@ -54,6 +54,12 @@ npm run dev
 - `/invite [tag]` - Generate a 24-hour invitation key for a specific group (defaults to `general`).
 - `/broadcast <tag> <message>` - Send a message to all users registered with the specified tag.
 
+### API Endpoints
+- `GET /users` - List all registered users.
+- `GET /invitations` - List all active invitation keys.
+- `POST /broadcast` - Send a broadcast message via the REST API.
+  - Body: `{ "tag": "developers", "message": "Your message here" }`
+
 ### User Commands
 - `/start` - Initial bot greeting.
 - **Registration** - Simply send a valid invitation key to the bot to be registered.

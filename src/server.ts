@@ -153,3 +153,40 @@ BackendDB.route({
     }
 });
 
+BackendDB.route({
+    method: 'post',
+    path: '/broadcast',
+    handler: async (db, req, res) => {
+        const { tag, message } = req.body;
+
+        if (!tag || !message) {
+            res.status(400).json({ error: 'Missing tag or message' });
+            return;
+        }
+
+        const targets = await db.select().from(registeredUsers).where(eq(registeredUsers.groupTag, tag));
+
+        if (targets.length === 0) {
+            res.status(404).json({ error: `No users found in group: ${tag}` });
+            return;
+        }
+
+        let successCount = 0;
+        for (const target of targets) {
+            try {
+                await bot.api.sendMessage(target.telegramId, `📢 *Broadcast for ${tag}*:\n\n${message}`, { parse_mode: "Markdown" });
+                successCount++;
+            } catch (e) {
+                console.error(`Failed to send message to ${target.telegramId}:`, e);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Broadcast sent to ${successCount}/${targets.length} users`,
+            tag,
+            count: successCount
+        });
+    }
+});
+
