@@ -46,6 +46,7 @@
     "@voscarmv/apigen": "^3.1.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "grammy": "^1.39.3",
     "pg": "^8.16.3"
   },
   "devDependencies": {

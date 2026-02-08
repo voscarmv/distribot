@@ -1,10 +1,17 @@
-import { boolean, bigint, timestamp, text, pgTable, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { pgTable, text, timestamp, bigint } from "drizzle-orm/pg-core";
 
-export const messages = pgTable("messages", {
-  id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-  user_id: varchar({ length: 255 }).notNull(),
-  message: text().notNull(),
-  queued: boolean().notNull(),
-  created_at: timestamp('created_at').notNull().defaultNow(),
-  updated_at: timestamp('updated_at').notNull().defaultNow()
+export const registeredUsers = pgTable("registered_users", {
+  telegramId: bigint("telegram_id", { mode: "number" }).primaryKey(),
+  username: text("username"),
+  privilege: text("privilege").notNull().default("regular"), // 'admin' or 'regular'
+  groupTag: text("group_tag").notNull().default("general"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const telegramUserInvitations = pgTable("telegram_user_invitations", {
+  invitationKey: text("invitation_key").primaryKey(),
+  privilege: text("privilege").notNull().default("regular"), // 'admin' or 'regular'
+  groupTag: text("group_tag").notNull().default("general"),
+  expiresAt: timestamp("expires_at").default(sql`NOW() + INTERVAL '24 hours'`).notNull(),
 });
