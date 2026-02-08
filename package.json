@@ -30,7 +30,7 @@
     "type": "git",
     "url": "git+https://github.com/voscarmv/aidb.git"
   },
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "author": "Oscar Mier",
   "type": "module",
   "main": "dist/index.js",

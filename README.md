@@ -72,4 +72,4 @@ This project leverages [@voscarmv/apigen](https://npmjs.com/package/@voscarmv/ap
 
 ## License
 
-GPL-3.0-or-later
+MIT
