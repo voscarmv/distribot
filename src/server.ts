@@ -19,7 +19,54 @@ const db = BackendDB.db;
 
 // Telegram Bot Logic
 bot.command("start", async (ctx) => {
-    await ctx.reply("🚀 Welcome! If you have an invitation key, please send it to register.\n\nAdmin users can use /invite to generate new keys.");
+    await ctx.reply("🚀 Welcome! If you have an invitation key, please redeem it to register.\n\nYou can use:\n`/register <key>`\n\nOr just send the key directly to this chat.", { parse_mode: "Markdown" });
+});
+
+async function redeemKey(ctx: any, key: string) {
+    if (!ctx.from) return;
+    const telegramId = ctx.from.id;
+
+    // Check if user is already registered
+    const existingUser = await db.select().from(registeredUsers).where(eq(registeredUsers.telegramId, telegramId)).limit(1);
+    if (existingUser.length) {
+        await ctx.reply("✅ You are already registered.");
+        return;
+    }
+
+    // Validate invitation key (must match and not be expired)
+    const invitation = await db.select().from(telegramUserInvitations)
+        .where(and(
+            eq(telegramUserInvitations.invitationKey, key),
+            gt(telegramUserInvitations.expiresAt, new Date())
+        ))
+        .limit(1);
+
+    if (invitation.length > 0) {
+        const invite = invitation[0]!;
+        // Register user in the database
+        await db.insert(registeredUsers).values({
+            telegramId,
+            username: ctx.from.username || ctx.from.first_name,
+            privilege: invite.privilege,
+            groupTag: invite.groupTag,
+        });
+
+        // Delete the invitation key after successful registration
+        await db.delete(telegramUserInvitations).where(eq(telegramUserInvitations.invitationKey, key));
+
+        await ctx.reply(`🎉 Success! You have been registered as a **${invite.privilege}** user in the **${invite.groupTag}** group.`);
+    } else {
+        await ctx.reply("❌ Invalid or expired invitation key.");
+    }
+}
+
+bot.command("register", async (ctx) => {
+    const key = ctx.match?.trim();
+    if (!key) {
+        await ctx.reply("❌ Please provide an invitation key.\nUsage: `/register <your_key>`", { parse_mode: "Markdown" });
+        return;
+    }
+    await redeemKey(ctx, key);
 });
 
 bot.command("invite", async (ctx) => {
@@ -92,43 +139,8 @@ bot.command("broadcast", async (ctx) => {
 
 bot.on("message:text", async (ctx) => {
     if (ctx.message.text.startsWith("/")) return; // Ignore commands
-    if (!ctx.from) return;
-    const telegramId = ctx.from.id;
-
-    // Check if user is already registered
-    const existingUser = await db.select().from(registeredUsers).where(eq(registeredUsers.telegramId, telegramId)).limit(1);
-    if (existingUser.length) {
-        await ctx.reply("✅ You are already registered.");
-        return;
-    }
-
     const key = ctx.message.text.trim();
-
-    // Validate invitation key (must match and not be expired)
-    const invitation = await db.select().from(telegramUserInvitations)
-        .where(and(
-            eq(telegramUserInvitations.invitationKey, key),
-            gt(telegramUserInvitations.expiresAt, new Date())
-        ))
-        .limit(1);
-
-    if (invitation.length > 0 && ctx.from) {
-        const invite = invitation[0]!;
-        // Register user in the database
-        await db.insert(registeredUsers).values({
-            telegramId,
-            username: ctx.from.username || ctx.from.first_name,
-            privilege: invite.privilege,
-            groupTag: invite.groupTag,
-        });
-
-        // Delete the invitation key after successful registration
-        await db.delete(telegramUserInvitations).where(eq(telegramUserInvitations.invitationKey, key));
-
-        await ctx.reply(`🎉 Success! You have been registered as a **${invite.privilege}** user in the **${invite.groupTag}** group.`);
-    } else {
-        await ctx.reply("❌ Invalid or expired invitation key.");
-    }
+    await redeemKey(ctx, key);
 });
 
 // Start the bot

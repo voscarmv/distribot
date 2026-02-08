@@ -63,7 +63,8 @@ npm run dev
 
 ### User Commands
 - `/start` - Initial bot greeting.
-- **Registration** - Simply send a valid invitation key to the bot to be registered.
+- `/register <key>` - Redeem an invitation key to register.
+- **Direct message** - You can also register by simply sending the key directly to the bot chat.
 
 ## Architecture
 
