@@ -21,7 +21,7 @@ npx dbinstall
 
 ### 2. Configuration
 
-The `.env` file is created by `npx dbinstall` alonng with `DATABASE_URL`. Fill in the values `TG_KEY`.
+The `.env` file is created by `npx dbinstall` along with `DATABASE_URL`. Fill in the value `TG_KEY` (your bot token from BotFather).
 
 ```env
 DATABASE_URL=postgres://user:password@localhost:5432/distribot
